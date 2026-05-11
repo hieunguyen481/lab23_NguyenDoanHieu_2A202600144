@@ -22,11 +22,11 @@ def route_after_classify(state: AgentState) -> str:
 
 
 def route_after_retry(state: AgentState) -> str:
-    """Decide whether to retry, fallback, or dead-letter.
-
-    TODO(student): implement bounded retry and dead-letter routing.
-    """
-    if int(state.get("attempt", 0)) >= int(state.get("max_attempts", 3)):
+    """Decide whether to retry or dead-letter based on attempt count."""
+    attempt = int(state.get("attempt", 0))
+    max_attempts = int(state.get("max_attempts", 3))
+    
+    if attempt >= max_attempts:
         return "dead_letter"
     return "tool"
 
@@ -43,9 +43,8 @@ def route_after_evaluate(state: AgentState) -> str:
 
 
 def route_after_approval(state: AgentState) -> str:
-    """Continue only if approved.
-
-    TODO(student): support reject/edit outcomes.
-    """
+    """Continue to tool only if approved; otherwise go to clarify."""
     approval = state.get("approval") or {}
-    return "tool" if approval.get("approved") else "clarify"
+    if approval.get("approved"):
+        return "tool"
+    return "clarify"
